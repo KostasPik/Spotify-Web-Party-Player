@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header') %> <!-- header partial -->
+
+
+</head>
+<body>
+    <style>
+        :root {
+            --border-radius: 18px;
+        }
+        
+        
+        #playing {
+            margin: 10px auto 0 auto;
+            text-align: center;
+        }
+        .ui {
+            margin-top: 35px;
+        }
+        .song-title {
+            font-weight: 550;
+        }
+        #myProgress {
+            width: 90%;
+            max-width: 350px;
+            margin: 20px auto 0 auto;
+            background-color: #bdc1d9;
+            /* border-bottom-left-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius); */
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        #myBar {
+            overflow: hidden;
+            width: 1%;
+            height: 6px;
+            /* background-color: #3759b8; */
+            background: linear-gradient(45deg, #0006ff, #a801ff);
+        }
+        .song-image {
+            width: 300px;
+            height: 300px;
+            margin: 10px auto 0 auto;
+            /* border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius); */
+            border-radius: var(--border-radius);
+        }
+        #paused {
+            text-transform: uppercase;
+            font-size: 25px;
+            font-style: italic;
+            color: #919294;
+            font-weight: 750;
+            margin: 30px auto 0 auto;
+        }
+        .states {
+            width: 400px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            margin: 40px auto 0 auto;
+        }
+        .states:first-child {
+            margin-left: auto;
+        }
+        .states:last-child {
+            margin-right: auto;
+        }
+        .state {   
+            display: flex;
+            flex-direction: column;
+            column-gap: 10px;
+            align-items: center;
+        }
+        .state .back-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width:70px;
+            height:70px;
+            background-color: #fff;
+            opacity: 0.9;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+        .state button {
+            background-color: inherit;
+            border: none;
+        }
+    </style>
+
+
+
+
+  <%- include('partials/nav') %> <!-- navbar partial -->
+
+
+<div id="playing">
+    <div class="ui">
+        <h2 class="song-title" id="song-title"></h2>
+        <small class="artist" id="artist"></small>
+        <br>
+        
+        <img class="song-image" id="song-image">
+        <div id="myProgress">
+            <div id="myBar"></div>
+        </div>
+        
+        <p class="paused" id="paused" hidden>Paused</p>                
+            <div class="waves" id="waves" hidden>
+            <div class="loader">
+                <span class="stroke"></span>
+                <span class="stroke"></span>
+                <span class="stroke"></span>
+                <span class="stroke"></span>
+                <span class="stroke"></span>
+                <span class="stroke"></span>
+                <span class="stroke"></span>
+                </div>
+        </div>
+
+        <div class="states">
+            <div class="state add" id="add">
+                <div class="back-state">
+                    <a href="/add-song"><img src="https://icongr.am/fontawesome/plus.svg?size=128&color=000000"
+                    style="width:30px; height:30px;">
+                </a>
+                
+            </div>
+                <small>Add Song</small>
+            </div>
+            <div class="state pause" id="pause">
+                <div class="back-state">
+                <a href="/api/next-songs">
+                    <img src="https://icongr.am/fontawesome/list.svg?size=128&color=000000"
+                style="width:30px; height:30px;">
+                </a>
+                </div>
+                <small>Playlist</small>
+
+            </div>
+            <div class="state skip" id="skip">
+
+                <div class="back-state">
+
+                <button type="button" onclick="voteToSkip()" id="vote-button">
+                    <img src="https://icongr.am/fontawesome/fast-forward.svg?size=128&color=000000"
+                    style="width:30px; height:30px;" id="vote-img"></button>
+                    </div>
+                <small><span id="votes">0</span>/5</small>
+            </div>
+        </div>
+
+
+    </div>
+    </div>
+
+    
+    <script>
+        const socket = io("http://<%=myIp%>:3000/");
+        
+        socket.on('connection');
+
+        var IMAGE_URL = ""; // we use this value to know when we should change the image of the song in the DOM
+        var SONG_TITLE = ""; // we use this value to know when we should change the title of the song in the DOM
+        var ARTIST = ""; // we use this value to know when we should change the artist of the song in the DOM
+
+
+        var songImageDiv = document.getElementById('song-image');
+        var progressBar = document.getElementById('myBar');
+        var songTitle = document.getElementById('song-title');
+        var artistDiv = document.getElementById('artist');
+        var votesDiv = document.getElementById('votes');
+        var wavesDiv = document.getElementById('waves');
+        var pauseText = document.getElementById('paused')
+        var voteButton = document.getElementById('vote-button');
+        var voteDiv = document.getElementById('vote-img');
+
+        socket.on("currentPlaybackState", (data) => {
+                setUi(data);
+        });
+
+        socket.on("votes", (data) => {
+            // console.log(data.votes);
+            votesDiv.textContent = data.votes; // change votes number
+            if(data.hasVoted) {
+                voteButton.disabled = true; // if client has voted, button should be disabled
+                voteDiv.style.opacity = 0.3;
+            }
+            else {
+                voteButton.disabled = false; //if client has not voted, button should not be disabled
+                voteDiv.style.opacity = 1;
+            }
+        })
+
+        
+
+        async function voteToSkip() {
+            socket.emit("vote-to-skip");
+        }
+        
+
+        async function setUi(data) {
+
+            if (data.data.is_playing) {
+                wavesDiv.hidden = false; // waves animation should be visible if song is playing.
+                pauseText.hidden = true; // text "paused" should NOT be visible.
+                songImageDiv.style.opacity = 1; 
+            } else {
+                pauseText.hidden = false; // waves animation should  NOT be visible if song is playing.
+                wavesDiv.hidden = true; // text "paused" should be visible.
+                songImageDiv.style.opacity = 0.7; // lower image opacity because song is not playing.
+            }
+
+
+            if (IMAGE_URL != data.data.item.album.images[0].url){ // if song has changed then change the image.
+                IMAGE_URL = data.data.item.album.images[0].url;
+                songImageDiv.setAttribute('src', IMAGE_URL);
+            }
+
+            if(SONG_TITLE != data.data.item.name) { //if song has changed then change the song title
+                SONG_TITLE = data.data.item.name;
+                songTitle.textContent = SONG_TITLE;
+
+                var artists = "";
+                
+                data.data.item.artists.forEach(artist => { //artists list
+                    artists += artist.name + ", "; 
+                })
+                ARTIST = artists.slice(0, artists.length - 2);
+                artistDiv.textContent = ARTIST; // change the artist name
+            }
+
+
+            var totalSeconds = data.data.item.duration_ms;
+            var currentSeconds = data.data.progress_ms;
+            progressBar.style.width = currentSeconds/totalSeconds * 100 +"%"; // set progress bar states   
+    }
+        
+    </script>   
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</body>
+</html>
+
+    
+
+     
+
+
+</body>
+</html>

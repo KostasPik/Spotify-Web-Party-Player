@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    <h1>Welcome to kostakis party</h1>
+    <div class="login">
+        <!-- <img src="https://getheavy.com/wp-content/uploads/2019/12/spotify2019-830x350.jpg" alt="Spotify-Logo"/> -->
+        <a href=<%=loginUrl%>>LOGIN WITH SPOTIFY</a>
+    </div>
+    <a href="/">Index</a>
+    <script>
+        const code = new URLSearchParams(window.location.search).get('code');
+        if (code && code.length > 0){
+            
+            fetch("http://127.0.0.1:3000/login/",{
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({code:code})
+            });
+        }
+    </script>
+</body>
+</html>

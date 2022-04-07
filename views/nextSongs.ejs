@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header') %> <!-- header partial -->
+
+</head>
+<body>
+    <style>
+        :root {
+            --border-radius: 18px;
+        }
+        
+        
+        #playing {
+            margin: 30px auto 0 auto;
+            text-align: center;
+        }
+        .ui {
+            margin-top: 40px;
+        }
+        .song-image {
+            width: 300px;
+            height: 300px;
+            margin: 10px auto 0 auto;
+            /* border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius); */
+            border-radius: var(--border-radius);
+        }
+        .states {
+            width: 400px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            margin: 40px auto 0 auto;
+        }
+        .states:first-child {
+            margin-left: auto;
+        }
+        .states:last-child {
+            margin-right: auto;
+        }
+        .state {   
+            display: flex;
+            flex-direction: column;
+            column-gap: 10px;
+            align-items: center;
+        }
+        .state .back-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width:70px;
+            height:70px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            margin-bottom: 5px;
+
+        }
+        .state button {
+            background-color: inherit;
+            border: none;
+        }
+    </style>
+
+
+
+<%- include('partials/nav') %> <!-- navbar partial -->
+
+
+  <div class="states">
+    <div class="state add" id="add">
+        <div class="back-state">
+            <a href="/add-song"><img src="https://icongr.am/fontawesome/plus.svg?size=128&color=000000"
+            style="width:30px; height:30px;">
+        </a>
+        
+    </div>
+        <small>Add Song</small>
+    </div>
+    <div class="state pause" id="pause">
+        <div class="back-state">
+        <a href="/api/next-songs">
+            <img src="https://icongr.am/fontawesome/list.svg?size=128&color=000000"
+        style="width:30px; height:30px;">
+        </a>
+        </div>
+        <small>Playlist</small>
+
+    </div>
+    <div class="state skip" id="skip">
+        <div class="back-state">
+        <a href="/">
+            <img src="https://icongr.am/fontawesome/play.svg?size=128&color=000000"
+            style="width:30px; height:30px;"></a>
+            </div>
+        <small>Playing</small>
+    </div>
+</div>
+
+<div id="playing">
+    <h1>Comming Up</h1>
+    <br>
+    <div class="ui">
+        <% spotifyJson.forEach((spotifyObject) => { %>
+            <h3 class="song-title" id="song-title"><%= spotifyObject.name %></h3>
+        <%spotifyObject.artists.forEach((artist) => { %>
+            <small class="artist" id="artist"><%=artist.name%></small>
+       <% }) %>
+        <br>
+        <img class="song-image" id="song-image" src="<%= spotifyObject.album.images[0].url %>">
+        <hr>
+    <% }) %>
+</div>
+
+    </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</body>
+</html>
+
+    
+
+     
+
+
+</body>
+</html>
